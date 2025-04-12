@@ -25,7 +25,15 @@ export const APIRoutes = {
     sessionId: string
   ) =>
     `${PlaygroundApiUrl}/v1/playground/agents/${agentId}/sessions/${sessionId}`,
+
+  // Knowledge Base Routes
   AddKnowledge: (PlaygroundApiUrl: string, agentId: string) =>
-    `${PlaygroundApiUrl}/v1/playground/agents/${agentId}/knowledge/add`
+    `${PlaygroundApiUrl}/v1/playground/agents/${agentId}/knowledge/add`,
+  UploadKnowledgeFile: (PlaygroundApiUrl: string, agentId: string) =>
+    `${PlaygroundApiUrl}/v1/playground/agents/${agentId}/knowledge/upload`,
+  ListKnowledgeFiles: (PlaygroundApiUrl: string, agentId: string) =>
+    `${PlaygroundApiUrl}/v1/playground/agents/${agentId}/knowledge/list`,
+  GetKnowledgeStatus: (PlaygroundApiUrl: string, agentId: string) =>
+    `${PlaygroundApiUrl}/v1/playground/agents/${agentId}/knowledge/status`
 }
 

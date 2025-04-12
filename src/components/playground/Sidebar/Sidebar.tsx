@@ -10,6 +10,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import Icon from '@/components/ui/icon'
 import { getProviderIcon } from '@/lib/modelProvider'
 import Sessions from './Sessions'
+import KnowledgeLink from './KnowledgeLink'
 import { isValidUrl } from '@/lib/utils'
 import { toast } from 'sonner'
 import { useQueryState } from 'nuqs'
@@ -554,6 +555,9 @@ const Sidebar = () => {
 
                 </motion.div>
                 {/* --- END UI CONTROLS SECTION --- */}
+
+                {/* Knowledge Management Link */}
+                <KnowledgeLink />
 
                 {/* Sessions List Section */}
                 <Sessions />
