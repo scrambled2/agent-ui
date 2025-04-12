@@ -79,6 +79,9 @@ interface PlaygroundStore {
   setGoalOverride: (goal: string | null) => void
   instructionsOverride: string | null
   setInstructionsOverride: (instructions: string | null) => void
+  // Max tokens control
+  maxTokens: number | null
+  setMaxTokens: (tokens: number | null) => void
   // Store default agent values (fetched from backend)
   defaultGoal: string | null
   setDefaultGoal: (goal: string | null) => void
@@ -112,6 +115,7 @@ export const usePlaygroundStore = create<PlaygroundStore>()(
       instructionsOverride: null,
       defaultGoal: null,
       defaultInstructions: null,
+      maxTokens: null,
 
       // Setter functions
       setHydrated: () => set({ hydrated: true }),
@@ -148,6 +152,7 @@ export const usePlaygroundStore = create<PlaygroundStore>()(
       setNumHistoryToInclude: (num) => set({ numHistoryToInclude: Math.max(0, num) }),
       setGoalOverride: (goal) => set({ goalOverride: goal }),
       setInstructionsOverride: (instructions) => set({ instructionsOverride: instructions }),
+      setMaxTokens: (tokens) => set({ maxTokens: tokens }),
       setDefaultGoal: (goal) => set({ defaultGoal: goal }),
       setDefaultInstructions: (instructions) => set({ defaultInstructions: instructions }),
     }),

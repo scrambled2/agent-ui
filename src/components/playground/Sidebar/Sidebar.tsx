@@ -266,6 +266,9 @@ const Sidebar = () => {
     setGoalOverride,
     instructionsOverride,
     setInstructionsOverride,
+    // Get Max Tokens State
+    maxTokens,
+    setMaxTokens
   } = usePlaygroundStore()
   // State to track if component is mounted
   const [isMounted, setIsMounted] = useState(false)
@@ -303,6 +306,14 @@ const Sidebar = () => {
      if (!isNaN(value)) {
        setNumHistoryToInclude(value);
      }
+  }
+
+  // Handler for Max Tokens input
+  const handleMaxTokensChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const value = event.target.value === '' ? null : parseInt(event.target.value, 10);
+    if (value === null || !isNaN(value)) {
+      setMaxTokens(value);
+    }
   }
 
   // Handlers for Goal/Instruction TextAreas
@@ -472,6 +483,28 @@ const Sidebar = () => {
                     />
                      <p className="text-xs text-muted">
                       Number of past message pairs sent to the model.
+                    </p>
+                  </div>
+
+                  {/* Max Tokens Input */}
+                  <div className="w-full space-y-2">
+                    <label
+                      htmlFor="max-tokens"
+                      className="block text-xs font-medium uppercase text-primary"
+                    >
+                      Max Tokens Output
+                    </label>
+                    <input
+                      id="max-tokens"
+                      type="number" min="100" max="4096" step="100"
+                      value={maxTokens ?? ''}
+                      onChange={handleMaxTokensChange}
+                      disabled={!agentId}
+                      placeholder="Default (model specific)"
+                      className="flex h-9 w-full rounded-xl border border-primary/15 bg-primaryAccent p-3 text-xs font-medium text-primary file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 focus:border-primary/50"
+                    />
+                     <p className="text-xs text-muted">
+                      Maximum number of tokens in the model's response.
                     </p>
                   </div>
 

@@ -29,7 +29,9 @@ const useAIChatStreamHandler = () => {
     numHistoryToInclude,
     // Get Goal/Instruction State
     goalOverride,
-    instructionsOverride
+    instructionsOverride,
+    // Get Max Tokens State
+    maxTokens
   } = usePlaygroundStore()
 
   const { streamResponse } = useAIResponseStream()
@@ -76,6 +78,10 @@ const useAIChatStreamHandler = () => {
       }
       if (instructionsOverride !== null) {
           formData.append('instructions', instructionsOverride);
+      }
+      // Add max tokens if set
+      if (maxTokens !== null) {
+          formData.append('max_tokens', maxTokens.toString());
       }
 
       // Optimistic UI Updates
