@@ -1,3 +1,5 @@
+// src/store.ts (Includes Goal/Instruction Overrides)
+
 import { create } from 'zustand'
 import { persist, createJSONStorage } from 'zustand/middleware'
 
@@ -6,15 +8,21 @@ import {
   type SessionEntry
 } from '@/types/playground'
 
+// Interface for the structure of Agent data expected by the UI
 interface Agent {
-  value: string
-  label: string
+  value: string // Agent ID
+  label: string // Agent Name
   model: {
     provider: string
+    id?: string
   }
   storage?: boolean
+  // Add optional default goal/instructions
+  goal?: string | null
+  instructions?: string[] | null
 }
 
+// Interface defining the structure of the global state
 interface PlaygroundStore {
   hydrated: boolean
   setHydrated: () => void
@@ -59,43 +67,72 @@ interface PlaygroundStore {
   ) => void
   isSessionsLoading: boolean
   setIsSessionsLoading: (isSessionsLoading: boolean) => void
+  // UI Control State
+  numDocumentsToRetrieve: number
+  setNumDocumentsToRetrieve: (num: number) => void
+  selectedModelOverride: string | null
+  setSelectedModelOverride: (modelId: string | null) => void
+  numHistoryToInclude: number
+  setNumHistoryToInclude: (num: number) => void
+  // State for Goal/Instructions Overrides
+  goalOverride: string | null
+  setGoalOverride: (goal: string | null) => void
+  instructionsOverride: string | null
+  setInstructionsOverride: (instructions: string | null) => void
+  // Store default agent values (fetched from backend)
+  defaultGoal: string | null
+  setDefaultGoal: (goal: string | null) => void
+  defaultInstructions: string[] | null
+  setDefaultInstructions: (instructions: string[] | null) => void
 }
 
+// Create the Zustand store with persistence
 export const usePlaygroundStore = create<PlaygroundStore>()(
   persist(
     (set) => ({
+      // Default values
       hydrated: false,
-      setHydrated: () => set({ hydrated: true }),
       streamingErrorMessage: '',
+      endpoints: [],
+      isStreaming: false,
+      isEndpointActive: false,
+      isEndpointLoading: true,
+      messages: [],
+      hasStorage: false,
+      chatInputRef: { current: null },
+      selectedEndpoint: 'http://localhost:7777',
+      agents: [],
+      selectedModel: '',
+      sessionsData: null,
+      isSessionsLoading: false,
+      numDocumentsToRetrieve: 3,
+      selectedModelOverride: null,
+      numHistoryToInclude: 3,
+      goalOverride: null,
+      instructionsOverride: null,
+      defaultGoal: null,
+      defaultInstructions: null,
+
+      // Setter functions
+      setHydrated: () => set({ hydrated: true }),
       setStreamingErrorMessage: (streamingErrorMessage) =>
         set(() => ({ streamingErrorMessage })),
-      endpoints: [],
       setEndpoints: (endpoints) => set(() => ({ endpoints })),
-      isStreaming: false,
       setIsStreaming: (isStreaming) => set(() => ({ isStreaming })),
-      isEndpointActive: false,
       setIsEndpointActive: (isActive) =>
         set(() => ({ isEndpointActive: isActive })),
-      isEndpointLoading: true,
       setIsEndpointLoading: (isLoading) =>
         set(() => ({ isEndpointLoading: isLoading })),
-      messages: [],
       setMessages: (messages) =>
         set((state) => ({
           messages:
             typeof messages === 'function' ? messages(state.messages) : messages
         })),
-      hasStorage: false,
       setHasStorage: (hasStorage) => set(() => ({ hasStorage })),
-      chatInputRef: { current: null },
-      selectedEndpoint: 'http://localhost:7777',
       setSelectedEndpoint: (selectedEndpoint) =>
         set(() => ({ selectedEndpoint })),
-      agents: [],
       setAgents: (agents) => set({ agents }),
-      selectedModel: '',
       setSelectedModel: (selectedModel) => set(() => ({ selectedModel })),
-      sessionsData: null,
       setSessionsData: (sessionsData) =>
         set((state) => ({
           sessionsData:
@@ -103,15 +140,27 @@ export const usePlaygroundStore = create<PlaygroundStore>()(
               ? sessionsData(state.sessionsData)
               : sessionsData
         })),
-      isSessionsLoading: false,
       setIsSessionsLoading: (isSessionsLoading) =>
-        set(() => ({ isSessionsLoading }))
+        set(() => ({ isSessionsLoading })),
+      setNumDocumentsToRetrieve: (num) =>
+        set({ numDocumentsToRetrieve: Math.max(1, num) }),
+      setSelectedModelOverride: (modelId) => set({ selectedModelOverride: modelId }),
+      setNumHistoryToInclude: (num) => set({ numHistoryToInclude: Math.max(0, num) }),
+      setGoalOverride: (goal) => set({ goalOverride: goal }),
+      setInstructionsOverride: (instructions) => set({ instructionsOverride: instructions }),
+      setDefaultGoal: (goal) => set({ defaultGoal: goal }),
+      setDefaultInstructions: (instructions) => set({ defaultInstructions: instructions }),
     }),
     {
       name: 'endpoint-storage',
       storage: createJSONStorage(() => localStorage),
       partialize: (state) => ({
-        selectedEndpoint: state.selectedEndpoint
+        selectedEndpoint: state.selectedEndpoint,
+        numDocumentsToRetrieve: state.numDocumentsToRetrieve,
+        selectedModelOverride: state.selectedModelOverride,
+        numHistoryToInclude: state.numHistoryToInclude,
+        goalOverride: state.goalOverride,
+        instructionsOverride: state.instructionsOverride,
       }),
       onRehydrateStorage: () => (state) => {
         state?.setHydrated?.()
