@@ -9,6 +9,7 @@ import {
   listKnowledgeFilesAPI,
   getKnowledgeStatusAPI
 } from '@/api/knowledge'
+import { listDocumentsAPI, Document as UserDocument } from '@/api/documents'
 import Sidebar from '@/components/playground/Sidebar/Sidebar'
 import { Button } from '@/components/ui/button'
 import Icon from '@/components/ui/icon'
@@ -29,6 +30,7 @@ interface KnowledgeStatus {
   text_files: number
   pdf_files: number
   vector_count: number
+  user_documents: number
   last_updated: string
 }
 
@@ -41,6 +43,7 @@ export default function KnowledgePage() {
 
   // State for files and status
   const [files, setFiles] = useState<KnowledgeFile[]>([])
+  const [userDocuments, setUserDocuments] = useState<UserDocument[]>([])
   const [status, setStatus] = useState<KnowledgeStatus | null>(null)
   const [isLoading, setIsLoading] = useState(false)
   const [isUploading, setIsUploading] = useState(false)
@@ -60,13 +63,21 @@ export default function KnowledgePage() {
     setIsLoading(true)
     try {
       // Load files
-      const fileType = activeTab === 'all' ? undefined : activeTab as 'text' | 'pdf'
+      const fileType = activeTab === 'all' || activeTab === 'documents' ? undefined : activeTab as 'text' | 'pdf'
       const filesResponse = await listKnowledgeFilesAPI(selectedEndpoint, agentId, fileType)
       setFiles(filesResponse.files)
 
+      // Load user documents
+      const documentsResponse = await listDocumentsAPI(selectedEndpoint, agentId)
+      setUserDocuments(documentsResponse.documents)
+
       // Load status
       const statusResponse = await getKnowledgeStatusAPI(selectedEndpoint, agentId)
-      setStatus(statusResponse)
+      // Add user documents count to status
+      setStatus({
+        ...statusResponse,
+        user_documents: documentsResponse.documents.length
+      })
     } catch (error) {
       console.error('Error loading knowledge data:', error)
       toast.error('Failed to load knowledge data')
@@ -138,7 +149,7 @@ export default function KnowledgePage() {
         <div className="mb-6 rounded-xl bg-primaryAccent p-4 shadow-md">
           <h2 className="mb-2 text-lg font-semibold text-primary">Knowledge Base Status</h2>
           {status ? (
-            <div className="grid grid-cols-3 gap-4">
+            <div className="grid grid-cols-4 gap-4">
               <div>
                 <p className="text-sm text-muted">Text Files</p>
                 <p className="text-xl font-medium text-primary">{status.text_files}</p>
@@ -146,6 +157,10 @@ export default function KnowledgePage() {
               <div>
                 <p className="text-sm text-muted">PDF Files</p>
                 <p className="text-xl font-medium text-primary">{status.pdf_files}</p>
+              </div>
+              <div>
+                <p className="text-sm text-muted">User Documents</p>
+                <p className="text-xl font-medium text-primary">{status.user_documents}</p>
               </div>
               <div>
                 <p className="text-sm text-muted">Vector Embeddings</p>
@@ -162,6 +177,7 @@ export default function KnowledgePage() {
           <TabsList className="mb-4">
             <TabsTrigger value="text">Text Files</TabsTrigger>
             <TabsTrigger value="pdf">PDF Files</TabsTrigger>
+            <TabsTrigger value="documents">User Documents</TabsTrigger>
             <TabsTrigger value="all">All Files</TabsTrigger>
           </TabsList>
 
@@ -182,7 +198,7 @@ export default function KnowledgePage() {
                   <Button
                     variant="default"
                     size="sm"
-                    className="cursor-pointer"
+                    className="cursor-pointer bg-black text-white hover:bg-gray-800"
                     disabled={isUploading}
                     asChild
                   >
@@ -250,7 +266,7 @@ export default function KnowledgePage() {
                   <Button
                     variant="default"
                     size="sm"
-                    className="cursor-pointer"
+                    className="cursor-pointer bg-black text-white hover:bg-gray-800"
                     disabled={isUploading}
                     asChild
                   >
@@ -295,6 +311,82 @@ export default function KnowledgePage() {
                           </td>
                         </tr>
                       ))}
+                  </tbody>
+                </table>
+              )}
+            </div>
+          </TabsContent>
+
+          {/* User Documents Tab */}
+          <TabsContent value="documents" className="space-y-4">
+            <div className="flex items-center justify-between">
+              <h2 className="text-lg font-semibold text-primary">User Documents</h2>
+              <div className="flex items-center gap-2">
+                <Link href={`/editor?agent=${agentId}`} passHref>
+                  <Button
+                    variant="default"
+                    size="sm"
+                    className="cursor-pointer bg-black text-white hover:bg-gray-800"
+                  >
+                    <Icon type="plus-icon" size="xs" className="mr-1" />
+                    Create New Document
+                  </Button>
+                </Link>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={loadFilesAndStatus}
+                  disabled={isLoading}
+                >
+                  <Icon type="refresh" size="xs" className="mr-1" />
+                  Refresh
+                </Button>
+              </div>
+            </div>
+
+            <div className="rounded-xl border border-primary/15 bg-primaryAccent">
+              {isLoading ? (
+                <div className="p-4 text-center text-muted">Loading documents...</div>
+              ) : userDocuments.length === 0 ? (
+                <div className="p-4 text-center text-muted">
+                  <p>No documents found</p>
+                  <Link href={`/editor?agent=${agentId}`} passHref>
+                    <Button variant="link" className="mt-2">
+                      Create your first document
+                    </Button>
+                  </Link>
+                </div>
+              ) : (
+                <table className="w-full">
+                  <thead>
+                    <tr className="border-b border-primary/15 text-left">
+                      <th className="p-3 text-xs font-medium uppercase text-primary">Title</th>
+                      <th className="p-3 text-xs font-medium uppercase text-primary">Created</th>
+                      <th className="p-3 text-xs font-medium uppercase text-primary">Updated</th>
+                      <th className="p-3 text-xs font-medium uppercase text-primary">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {userDocuments.map((doc) => (
+                      <tr key={doc.id} className="border-b border-primary/10 text-left last:border-0">
+                        <td className="p-3 text-sm text-primary">{doc.title}</td>
+                        <td className="p-3 text-sm text-muted">
+                          {doc.created_at ? new Date(doc.created_at).toLocaleString() : 'N/A'}
+                        </td>
+                        <td className="p-3 text-sm text-muted">
+                          {doc.updated_at ? new Date(doc.updated_at).toLocaleString() : 'N/A'}
+                        </td>
+                        <td className="p-3 text-sm">
+                          <div className="flex items-center gap-2">
+                            <Link href={`/editor?agent=${agentId}&document=${doc.id}`} passHref>
+                              <Button variant="ghost" size="sm">
+                                <Icon type="edit" size="xs" />
+                              </Button>
+                            </Link>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
                   </tbody>
                 </table>
               )}

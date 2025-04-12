@@ -34,6 +34,18 @@ export const APIRoutes = {
   ListKnowledgeFiles: (PlaygroundApiUrl: string, agentId: string) =>
     `${PlaygroundApiUrl}/v1/playground/agents/${agentId}/knowledge/list`,
   GetKnowledgeStatus: (PlaygroundApiUrl: string, agentId: string) =>
-    `${PlaygroundApiUrl}/v1/playground/agents/${agentId}/knowledge/status`
+    `${PlaygroundApiUrl}/v1/playground/agents/${agentId}/knowledge/status`,
+
+  // Document Management Routes
+  ListDocuments: (PlaygroundApiUrl: string, agentId: string) =>
+    `${PlaygroundApiUrl}/v1/playground/agents/${agentId}/documents`,
+  GetDocument: (PlaygroundApiUrl: string, agentId: string, documentId: string) =>
+    `${PlaygroundApiUrl}/v1/playground/agents/${agentId}/documents/${documentId}`,
+  CreateDocument: (PlaygroundApiUrl: string, agentId: string) =>
+    `${PlaygroundApiUrl}/v1/playground/agents/${agentId}/documents`,
+  UpdateDocument: (PlaygroundApiUrl: string, agentId: string, documentId: string) =>
+    `${PlaygroundApiUrl}/v1/playground/agents/${agentId}/documents/${documentId}`,
+  DeleteDocument: (PlaygroundApiUrl: string, agentId: string, documentId: string) =>
+    `${PlaygroundApiUrl}/v1/playground/agents/${agentId}/documents/${documentId}`
 }
 
